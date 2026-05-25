@@ -1,3 +1,5 @@
+import PublicInventory from './components/PublicInventory';
+import RentItem from './components/RentItem';
 import LandingPage from "./components/LandingPage";
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useLocation } from "react-router-dom";
@@ -150,6 +152,8 @@ function AppInner({ session, isAdmin }) {
         <Route path="/" element={<LandingPage />} />
         
         {/* ДОБАВИЛИ РОУТ /about */}
+        <Route path="/inventory" element={<PublicInventory />} />
+<Route path="/rent/:id" element={<RentItem />} />
         <Route path="/about" element={<About />} />
         
         <Route path="/book" element={<div className="max-w-6xl mx-auto"><BookingForm /></div>} />

@@ -7,7 +7,7 @@ import { supabase } from "./supabaseClient";
 import BookingForm from "./components/BookingForm";
 import AdminDashboard from "./components/AdminDashboard";
 import Auth from "./components/Auth";
-import About from "./components/About"; // <-- ДОБАВИЛИ ИМПОРТ
+import About from "./components/About"; 
 import { Layers, LogOut, LayoutDashboard, LogIn, Loader2, Lock } from "lucide-react";
 
 // ─── Full-screen loader ───────────────────────────────────────────────────────
@@ -49,11 +49,12 @@ function Navbar({ session, isAdmin }) {
           </div>
         </Link>
 
-        {/* ДОБАВИЛИ НАВИГАЦИЮ ПО ЦЕНТРУ */}
+        {/* НАВИГАЦИЯ ПО ЦЕНТРУ (Добавили Склад) */}
         <div className="hidden md:flex items-center gap-8">
           {[
             { path: '/', label: 'Главная' },
             { path: '/about', label: 'О нас' },
+            { path: '/inventory', label: 'Склад' }, // <--- Теперь юзеры увидят ссылку в меню
             { path: '/book', label: 'Забронировать' }
           ].map(link => (
             <Link 
@@ -70,7 +71,6 @@ function Navbar({ session, isAdmin }) {
         <div className="flex items-center gap-2">
           {session ? (
             <>
-              {/* Кнопка Админки видна ТОЛЬКО настоящим админам */}
               {isAdmin && (
                 <Link
                   to="/admin"
@@ -150,12 +150,9 @@ function AppInner({ session, isAdmin }) {
       <Navbar session={session} isAdmin={isAdmin} />
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        
-        {/* ДОБАВИЛИ РОУТ /about */}
         <Route path="/inventory" element={<PublicInventory />} />
-<Route path="/rent/:id" element={<RentItem />} />
+        <Route path="/rent/:id" element={<RentItem />} />
         <Route path="/about" element={<About />} />
-        
         <Route path="/book" element={<div className="max-w-6xl mx-auto"><BookingForm /></div>} />
 
         <Route

@@ -1,14 +1,14 @@
 import LandingPage from "./components/LandingPage";
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import BookingForm from "./components/BookingForm";
 import AdminDashboard from "./components/AdminDashboard";
 import Auth from "./components/Auth";
+import About from "./components/About"; // <-- ДОБАВИЛИ ИМПОРТ
 import { Layers, LogOut, LayoutDashboard, LogIn, Loader2, Lock } from "lucide-react";
 
 // ─── Full-screen loader ───────────────────────────────────────────────────────
-
 function PageLoader() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-4">
@@ -22,9 +22,9 @@ function PageLoader() {
 }
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
-
 function Navbar({ session, isAdmin }) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -46,6 +46,23 @@ function Navbar({ session, isAdmin }) {
             </span>
           </div>
         </Link>
+
+        {/* ДОБАВИЛИ НАВИГАЦИЮ ПО ЦЕНТРУ */}
+        <div className="hidden md:flex items-center gap-8">
+          {[
+            { path: '/', label: 'Главная' },
+            { path: '/about', label: 'О нас' },
+            { path: '/book', label: 'Забронировать' }
+          ].map(link => (
+            <Link 
+              key={link.path} 
+              to={link.path} 
+              className={`text-sm font-semibold transition-colors ${location.pathname === link.path ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'}`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
 
         {/* Nav actions */}
         <div className="flex items-center gap-2">
@@ -94,12 +111,10 @@ function Navbar({ session, isAdmin }) {
 }
 
 // ─── Protected Admin Route ────────────────────────────────────────────────────
-
 function ProtectedAdminRoute({ session, isAdmin, children }) {
   if (!session) return <Navigate to="/auth" replace />;
-  if (isAdmin === null) return <PageLoader />; // Ждем, пока проверится база данных
+  if (isAdmin === null) return <PageLoader />; 
   
-  // Если авторизован, но НЕ админ — показываем замок!
   if (isAdmin === false) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
@@ -121,40 +136,38 @@ function ProtectedAdminRoute({ session, isAdmin, children }) {
 }
 
 // ─── Public Auth Route (redirect if logged in) ────────────────────────────────
-
 function PublicAuthRoute({ session, children }) {
   if (session) return <Navigate to="/" replace />;
   return children;
 }
 
 // ─── Inner App ────────────────────────────────────────────────────────────────
-
 function AppInner({ session, isAdmin }) {
   return (
     <>
       <Navbar session={session} isAdmin={isAdmin} />
       <Routes>
-  {/* Главная страница (Лендинг) */}
-  <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<LandingPage />} />
+        
+        {/* ДОБАВИЛИ РОУТ /about */}
+        <Route path="/about" element={<About />} />
+        
+        <Route path="/book" element={<div className="max-w-6xl mx-auto"><BookingForm /></div>} />
 
-  {/* Страница формы бронирования */}
-  <Route path="/book" element={<div className="max-w-6xl mx-auto"><BookingForm /></div>} />
-
-  {/* ... дальше идут твои старые роуты /auth и /admin ... */}
-  <Route
-    path="/auth"
-    element={
-      <PublicAuthRoute session={session}>
-        <Auth />
-      </PublicAuthRoute>
-    }
-  />
-  {/* и так далее */}
+        <Route
+          path="/auth"
+          element={
+            <PublicAuthRoute session={session}>
+              <Auth />
+            </PublicAuthRoute>
+          }
+        />
+        
         <Route
           path="/admin"
           element={
             <ProtectedAdminRoute session={session} isAdmin={isAdmin}>
-              <div className="max-w-6xl mx-auto px-4 py-8">
+              <div className="max-w-7xl mx-auto px-4 py-8">
                 <AdminDashboard />
               </div>
             </ProtectedAdminRoute>
@@ -167,12 +180,10 @@ function AppInner({ session, isAdmin }) {
 }
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
-
 export default function App() {
   const [session, setSession] = useState(undefined);
   const [isAdmin, setIsAdmin] = useState(null);
 
-  // Функция для проверки роли в таблице admins
   const checkAdminStatus = async (user) => {
     if (!user) {
       setIsAdmin(false);
@@ -184,7 +195,7 @@ export default function App() {
       .eq('user_id', user.id)
       .single();
     
-    setIsAdmin(!!data); // Если запись нашлась - true, иначе false
+    setIsAdmin(!!data); 
   };
 
   useEffect(() => {
